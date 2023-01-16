@@ -104,6 +104,8 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.venv1
+.venv2
 env/
 venv/
 ENV/
@@ -133,6 +135,7 @@ outputs/
 
 # datasets
 FashionMNIST/
+data/
 
 # vs code
 .vscode/settings.json

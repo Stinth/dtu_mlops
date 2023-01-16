@@ -1,18 +1,28 @@
+from typing import List  # you will need all of them in your code
+from typing import Callable, Optional, Tuple, Union
+
 import torch
 import torch.nn.functional as F
 from torch import nn
 
+
 class Network(nn.Module):
-    def __init__(self, input_size, output_size, hidden_layers, drop_p=0.5):
-        ''' Builds a feedforward network with arbitrary hidden layers.
+    def __init__(
+        self,
+        input_size: int,
+        output_size: int,
+        hidden_layers: List[int],
+        drop_p: float = 0.5,
+    ) -> None:
+        """Builds a feedforward network with arbitrary hidden layers.
 
-            Arguments
-            ---------
-            input_size: integer, size of the input layer
-            output_size: integer, size of the output layer
-            hidden_layers: list of integers, the sizes of the hidden layers
+        Arguments
+        ---------
+        input_size: integer, size of the input layer
+        output_size: integer, size of the output layer
+        hidden_layers: list of integers, the sizes of the hidden layers
 
-        '''
+        """
         super().__init__()
         # Input to a hidden layer
         self.hidden_layers = nn.ModuleList([nn.Linear(input_size, hidden_layers[0])])
@@ -25,8 +35,8 @@ class Network(nn.Module):
 
         self.dropout = nn.Dropout(p=drop_p)
 
-    def forward(self, x):
-        ''' Forward pass through the network, returns the output logits '''
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass through the network, returns the output logits"""
 
         for each in self.hidden_layers:
             x = F.relu(each(x))
@@ -36,7 +46,11 @@ class Network(nn.Module):
         return F.log_softmax(x, dim=1)
 
 
-def validation(model, testloader, criterion):
+def validation(
+    model: nn.Module,
+    testloader: torch.utils.data.DataLoader,
+    criterion: Union[Callable, nn.Module],
+) -> Tuple[float, float]:
     accuracy = 0
     test_loss = 0
     for images, labels in testloader:
@@ -50,14 +64,22 @@ def validation(model, testloader, criterion):
         # Model's output is log-softmax, take exponential to get the probabilities
         ps = torch.exp(output)
         # Class with highest probability is our predicted class, compare with true label
-        equality = (labels.data == ps.max(1)[1])
+        equality = labels.data == ps.max(1)[1]
         # Accuracy is number of correct predictions divided by all predictions, just take the mean
         accuracy += equality.type_as(torch.FloatTensor()).mean()
 
     return test_loss, accuracy
 
 
-def train(model, trainloader, testloader, criterion, optimizer=None, epochs=5, print_every=40):
+def train(
+    model: nn.Module,
+    trainloader: torch.utils.data.DataLoader,
+    testloader: torch.utils.data.DataLoader,
+    criterion: Union[Callable, nn.Module],
+    optimizer: Optional[torch.optim.Optimizer] = None,
+    epochs: int = 5,
+    print_every: int = 40,
+) -> None:
     if optimizer is None:
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-2)
     steps = 0
@@ -88,10 +110,12 @@ def train(model, trainloader, testloader, criterion, optimizer=None, epochs=5, p
                 with torch.no_grad():
                     test_loss, accuracy = validation(model, testloader, criterion)
 
-                print("Epoch: {}/{}.. ".format(e+1, epochs),
-                      "Training Loss: {:.3f}.. ".format(running_loss/print_every),
-                      "Test Loss: {:.3f}.. ".format(test_loss/len(testloader)),
-                      "Test Accuracy: {:.3f}".format(accuracy/len(testloader)))
+                print(
+                    "Epoch: {}/{}.. ".format(e + 1, epochs),
+                    "Training Loss: {:.3f}.. ".format(running_loss / print_every),
+                    "Test Loss: {:.3f}.. ".format(test_loss / len(testloader)),
+                    "Test Accuracy: {:.3f}".format(accuracy / len(testloader)),
+                )
 
                 running_loss = 0
 
