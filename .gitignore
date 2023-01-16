@@ -142,3 +142,4 @@ data/
 
 # mac specific
 .DS_Store
+/data
