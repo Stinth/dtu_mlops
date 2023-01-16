@@ -60,7 +60,7 @@ def validation(
         output = model.forward(images)
         test_loss += criterion(output, labels).item()
 
-        ## Calculating the accuracy
+        # Calculating the accuracy
         # Model's output is log-softmax, take exponential to get the probabilities
         ps = torch.exp(output)
         # Class with highest probability is our predicted class, compare with true label
